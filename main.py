@@ -128,9 +128,12 @@ class Universeselectionv1(QCAlgorithm):
     def OnSecuritiesChanged(self, changes):
         # Remove securities that were removed from our universe
         for security in changes.RemovedSecurities:
+            if security.Symbol in self.activeStocks:
+                self.activeStocks.remove(security.Symbol)
+            else:
+                self.log(f"Security {security.Symbol} not in active stocks")
             if security.Invested:
                 self.Liquidate(security.Symbol)
-                self.activeStocks.remove(security.Symbol)
 
         # can't open positions here since data might not be added correctly yet
         for x in changes.AddedSecurities:
@@ -150,7 +153,8 @@ class Universeselectionv1(QCAlgorithm):
                 if symbol not in data:
                     return
             else:
-                activeStocks_truncated.remove(symbol)
+                if symbol not in data:
+                    activeStocks_truncated.remove(symbol)
 
         # adjust portfolio targets again
         self.portfolioTargets = [PortfolioTarget(symbol, 1/len(activeStocks_truncated)) 
@@ -160,3 +164,4 @@ class Universeselectionv1(QCAlgorithm):
         self.Log(f"Rebalanced portfolio on {self.Time}")
         
         self.portfolioTargets = []
+        self.counter = 0
