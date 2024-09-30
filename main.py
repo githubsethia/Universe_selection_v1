@@ -3,7 +3,11 @@
 from AlgorithmImports import *
 from datetime import timedelta
 import numpy as np
+from inputs import CONFIG
+
 # endregion
+
+#learning1 - lower Market cap provides better returns
 
 class Universeselectionv1(QCAlgorithm):
 
@@ -11,26 +15,30 @@ class Universeselectionv1(QCAlgorithm):
         self.UniverseSettings.Resolution = Resolution.Daily
         self.AddUniverse(self.CoarseSelectionFunction, self.FineSelectionFunction)
 
-        self.SetStartDate(2020, 1, 1)  # Set start date
-        self.SetEndDate(2024, 8, 31)    # Set end date
-        self.SetCash(100000)           # Set strategy cash
+        start_date = CONFIG["algorithm"]["start_date"]
+        self.SetStartDate(start_date["year"], start_date["month"], start_date["day"])  # Set start date
 
-        # Move all hard-coded values here
-        self.market_cap_filter = 1e9  # $1 billion
-        self.volume_filter = 1e6  # $1 million daily volume
-        self.turnover_filter = 1e-6  # 1.0% daily turnover (High liquidity),0.5%-1% is medium
-        self.min_price = 10  # $10 minimum price
-        self.revenue_growth_year = 0.1  # 10% yearly revenue growth
-        self.revenue_growth_quarter = 0.025  # 2.5% quarterly revenue growth
-        self.pe_ratio_min = 10
-        self.pe_ratio_max = 99
-        self.year_low_threshold = 0.5  # 50% above 52-week low
-        self.num_stocks = 100  # Final number of stocks to select
-        self.max_debt_to_equity = 1.5  # Maximum Debt-to-Equity ratio
-        self.history_bars = 252  # Number of days for historical data
+        end_date = CONFIG["algorithm"]["end_date"]
+        self.SetEndDate(end_date["year"], end_date["month"], end_date["day"])  # Set end date
 
-        # Rebalance parameters
-        self.rebalance_days = 30
+        self.SetCash(CONFIG["algorithm"]["cash"])  # Set strategy cash
+
+        # Universe config
+        self.market_cap_filter = CONFIG["universe"]["market_cap_filter"]
+        self.volume_filter = CONFIG["universe"]["volume_filter"]
+        self.turnover_filter = CONFIG["universe"]["turnover_filter"]
+        self.min_price = CONFIG["universe"]["min_price"]
+        self.revenue_growth_year = CONFIG["universe"]["revenue_growth_year"]
+        self.revenue_growth_quarter = CONFIG["universe"]["revenue_growth_quarter"]
+        self.pe_ratio_min = CONFIG["universe"]["pe_ratio_min"]
+        self.pe_ratio_max = CONFIG["universe"]["pe_ratio_max"]
+        self.year_low_threshold = CONFIG["universe"]["year_low_threshold"]
+        self.num_stocks = CONFIG["universe"]["num_stocks"]
+        self.max_debt_to_equity = CONFIG["universe"]["max_debt_to_equity"]
+        self.history_bars = CONFIG["universe"]["history_bars"]
+
+        # Rebalance config
+        self.rebalance_days = CONFIG["rebalance"]["rebalance_days"]
         self.next_rebalance = self.StartDate
         self.portfolioTargets = []
         self.activeStocks = set()  # To store our selected universe
@@ -114,7 +122,7 @@ class Universeselectionv1(QCAlgorithm):
             self.Log(f"An error occurred: {str(e)}")
 
         # rank based on highest market cap
-        ranked_stocks = sorted(year_low_filter, key=lambda x: x.MarketCap,reverse=True)
+        ranked_stocks = sorted(year_low_filter, key=lambda x: x.MarketCap,reverse=False)
 
         final_selection = ranked_stocks[:self.num_stocks]
         self.Log(f"Final selection: {len(final_selection)}")
