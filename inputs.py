@@ -6,8 +6,8 @@ CONFIG = {
             "day": 1
         },
         "end_date": {  # The end date of the backtest
-            "year": 2024,
-            "month": 8,
+            "year": 2023,
+            "month": 2,
             "day": 31
         },
         "cash": 100000  # The starting cash for the algorithm
