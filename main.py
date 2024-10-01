@@ -12,7 +12,8 @@ from inputs import CONFIG
 class Universeselectionv1(QCAlgorithm):
 
     def Initialize(self):
-        self.UniverseSettings.Resolution = Resolution.Daily
+        self.config = CONFIG
+        self.UniverseSettings.Resolution = self.config['algorithm']['universe_resolution']
         self.AddUniverse(self.CoarseSelectionFunction, self.FineSelectionFunction)
 
         start_date = CONFIG["algorithm"]["start_date"]
@@ -137,10 +138,12 @@ class Universeselectionv1(QCAlgorithm):
         self.Log(f"Final selection: {[f.Symbol.Value for f in final_selection]}")
 
         self.next_rebalance = self.Time + timedelta(days=self.rebalance_days)
+        selected = [f.Symbol for f in final_selection]
+        if self.config['algorithm']['test_one_symbol']:
+            selected = [self.add_equity(self.config['algorithm']['test_symbol'],
+                                        self.config['algorithm']['universe_resolution']).Symbol]
 
-        return [f.Symbol for f in final_selection]
-    
-
+        return selected
     
     def OnSecuritiesChanged(self, changes):
         # Remove securities that were removed from our universe

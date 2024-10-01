@@ -13,7 +13,10 @@ CONFIG = {
             "month": 2,
             "day": 1
         },
-        "cash": 100000  # The starting cash for the algorithm
+        "cash": 100000,  # The starting cash for the algorithm
+        "universe_resolution": AI.Resolution.DAILY, # Resolution for universe selection (e.g., HOUR, MINUTE, DAILY)
+        "test_one_symbol": True, # Set to True to test only one symbol
+        "test_symbol": "MSFT" # Symbol to test
     },
     "universe": {
             "market_cap_filter": 1e9/2,  # $1 billion
