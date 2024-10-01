@@ -35,7 +35,9 @@ class Universeselectionv1(QCAlgorithm):
         self.year_low_threshold = CONFIG["universe"]["year_low_threshold"]
         self.num_stocks = CONFIG["universe"]["num_stocks"]
         self.max_debt_to_equity = CONFIG["universe"]["max_debt_to_equity"]
-        self.history_bars = CONFIG["universe"]["history_bars"]
+        self.universe_history_bars = CONFIG["universe"]["universe_history_bars"]
+        self.universe_history_resolution = CONFIG["universe"]["universe_history_resolution"]
+        self.market_cap_descending = CONFIG["universe"]["market_cap_descending"]
 
         # Rebalance config
         self.rebalance_days = CONFIG["rebalance"]["rebalance_days"]
@@ -102,7 +104,7 @@ class Universeselectionv1(QCAlgorithm):
 
         # Use try-except for history to handle any potential issues
         try:
-            history = self.History([f.Symbol for f in low_debt_equity], self.history_bars, Resolution.Daily)
+            history = self.History([f.Symbol for f in low_debt_equity], self.universe_history_bars, self.universe_history_resolution)
             sma_filter = []
             year_low_filter = []
             
@@ -126,15 +128,18 @@ class Universeselectionv1(QCAlgorithm):
             self.Log(f"An error occurred: {str(e)}")
 
         # rank based on highest market cap
-        ranked_stocks = sorted(year_low_filter, key=lambda x: x.MarketCap,reverse=False)
+        ranked_stocks = sorted(year_low_filter, key=lambda x: x.MarketCap,reverse=self.market_cap_descending)
 
         final_selection = ranked_stocks[:self.num_stocks]
-        if self.fine_logs: self.Log(f"Final selection: {len(final_selection)}")
-        if self.fine_logs: self.Log(f"Final selection: {[f.Symbol.Value for f in final_selection]}")
+        # if self.fine_logs: 
+        self.Log(f"Final selection: {len(final_selection)}")
+        # if self.fine_logs: 
+        self.Log(f"Final selection: {[f.Symbol.Value for f in final_selection]}")
 
         self.next_rebalance = self.Time + timedelta(days=self.rebalance_days)
 
         return [f.Symbol for f in final_selection]
+    
 
     
     def OnSecuritiesChanged(self, changes):
